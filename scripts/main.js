@@ -1,5 +1,6 @@
 var myHeading = document.querySelector('H1');
 myHeading.textContent = 'Hello, World!';
+console.log('Hello world');
 
 
 var currentdate = new Date();
