@@ -19,7 +19,9 @@ MongoClient.connect(url, function(err, db){
     if (err) throw err;
     db.collection('customers').find({ _id: 154}).toArray(function(err, result){
         if (err) throw err;
-        console.log(result[0].name);
+        var final = '';
+        for (var i of result) {final = final + i.name + ' '};
+        console.log(final);
         db.close();
     })
 })

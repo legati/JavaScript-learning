@@ -1,4 +1,6 @@
 var http = require('http');
+var httpRequest = require('request');
+//var xml = require("w3c-xmlhttprequest");
 
 //formatting time&date output 
 var hours = function(date) {
@@ -18,29 +20,57 @@ var seconds = function(date) {
         if (s < 10){s = '0' + s}; 
         return(s)
 };
+
 var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
 var url = 'mongodb://localhost:27017/test2';
 
+function insertDocuments (db, doc, callback){
+    //Get the doc collection
+    var collection = db.collection('documents');
+    //Insert documents
+    collection.insert(doc, function(err, result) {
+        if (err) throw err;        
+        console.log("Inserted a doc");
+        callback(result);
+        });
+};
+
+function googleSearchUrl (err, key, callback) {
+        if (err) throw err;
+        var query = 'https://www.google.com.au/search?q=' + key;
+        httpRequest(query, function(err, resp, body){
+        if (err) throw err;
+        var searchOut = body.slice(0,40);
+        callback && callback(searchOut);
+        });
+};
+
+function finalize(db, response) {
+        response.end();
+        db.close();
+}
+
 //creating server
 var server = http.createServer(function (request, response) {
     var currentdate = new Date();
-    var datetime = currentdate.getDate() + "/"+ (currentdate.getMonth() + 1) + "/"  + currentdate.getFullYear() + " @ " 
-    + hours(currentdate) + ":" + minutes(currentdate) + ":" + seconds(currentdate);
-    var resultLine;
 
     response.writeHead(200, {'Content-Type':'text/plain'});
-    response.write('Bla-bla \n');
-    response.write('Hello, world' + '\n' + datetime + '\n' + Math.random() + '\n');
+    response.write('Hello, world' + '\n' + currentdate + '\n' + Math.random() + '\n');
 
     MongoClient.connect(url, function(err, db){
         if (err) throw err;
-        db.collection('customers').find({ _id: 154}).toArray(function(err, result){
+        db.collection('customers').find({ _id: 154}).toArray(function(err, results) {
                 if (err) throw err;
-                response.end("DB value: " + result[0].name);
-                db.close();
-        })
+                var dbRes = String(results[0].name);
+                response.write(dbRes + '\n');
+                googleSearchUrl(err, dbRes, function finishedSearch(err, searchOut) {
+                        if (err) console.error(err);
+                        response.write('test \n' + String(searchOut));
+                        finalize(db, response);
+                });
         });
+    });
 });
 
 //Listen to port localhost:8000

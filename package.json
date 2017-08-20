@@ -15,5 +15,12 @@
   "bugs": {
     "url": "https://github.com/legati/JavaScript-learning/issues"
   },
-  "homepage": "https://github.com/legati/JavaScript-learning#readme"
+  "homepage": "https://github.com/legati/JavaScript-learning#readme",
+  "dependencies": {
+    "http": "0.0.0",
+    "mongodb": "^2.2.31",
+    "package": "^1.0.1",
+    "request": "^2.81.0",
+    "w3c-xmlhttprequest": "^2.1.2"
+  }
 }
