@@ -28,21 +28,22 @@ var url = 'mongodb://localhost:27017/test2';
 function insertDocuments (db, doc, callback){
     //Get the doc collection
     var collection = db.collection('documents');
+    if (typeof doc !== 'Object') {ins = Object(doc);} else {ins = doc};
     //Insert documents
-    collection.insert(doc, function(err, result) {
-        if (err) throw err;        
+    collection.insert(ins, function(err, result) {
+        if (err) console.error(err);        
         console.log("Inserted a doc");
-        callback(result);
+        callback && callback(result);
         });
 };
 
 function googleSearchUrl (err, key, callback) {
-        if (err) throw err;
+        if (err) console.error(err);
         var query = 'https://www.google.com.au/search?q=' + key;
         httpRequest(query, function(err, resp, body){
-        if (err) throw err;
-        var searchOut = body.slice(0,40);
-        callback && callback(searchOut);
+        //if (err) throw err;
+        var searchOut = body && body.slice(2,9);
+        callback && callback(err, searchOut);
         });
 };
 
@@ -59,15 +60,15 @@ var server = http.createServer(function (request, response) {
     response.write('Hello, world' + '\n' + currentdate + '\n' + Math.random() + '\n');
 
     MongoClient.connect(url, function(err, db){
-        if (err) throw err;
+        if (err) console.error(err);
         db.collection('customers').find({ _id: 154}).toArray(function(err, results) {
-                if (err) throw err;
+                if (err) console.error(err);
                 var dbRes = String(results[0].name);
                 response.write(dbRes + '\n');
                 googleSearchUrl(err, dbRes, function finishedSearch(err, searchOut) {
                         if (err) console.error(err);
                         response.write('test \n' + String(searchOut));
-                        finalize(db, response);
+                        insertDocuments(db, Object(searchOut), finalize(db, response));
                 });
         });
     });
