@@ -27,18 +27,18 @@ var url = 'mongodb://localhost:27017/test2';
 
 function insertDocuments (db, doc, callback){
     //Get the doc collection
-    var collection = db.collection('documents');
+    var collection = db.collection('customers');
     if (typeof doc !== 'Object') {ins = Object(doc);} else {ins = doc};
     //Insert documents
     collection.insert(ins, function(err, result) {
-        if (err) console.error(err);        
+        if (err) throw err;        
         console.log("Inserted a doc");
         callback && callback(result);
         });
 };
 
 function googleSearchUrl (err, key, callback) {
-        if (err) console.error(err);
+        if (err) throw err;
         var query = 'https://www.google.com.au/search?q=' + key;
         httpRequest(query, function(err, resp, body){
         //if (err) throw err;
@@ -47,10 +47,6 @@ function googleSearchUrl (err, key, callback) {
         });
 };
 
-function finalize(db, response) {
-        response.end();
-        db.close();
-}
 
 //creating server
 var server = http.createServer(function (request, response) {
@@ -68,7 +64,10 @@ var server = http.createServer(function (request, response) {
                 googleSearchUrl(err, dbRes, function finishedSearch(err, searchOut) {
                         if (err) console.error(err);
                         response.write('test \n' + String(searchOut));
-                        insertDocuments(db, Object(searchOut), finalize(db, response));
+                        insertDocuments(db, searchOut, function() {
+                                db.close();
+                                response.end();
+                        });
                 });
         });
     });
@@ -79,5 +78,3 @@ server.listen(8000);
 
 //Console output indicating server startup
 console.log('Server running at http://localhost:8000/')
-
-//Database
