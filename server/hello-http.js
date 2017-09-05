@@ -26,7 +26,10 @@ var MongoClient = mongo.MongoClient;
 var url = 'mongodb://localhost:27017/test2';
 
 function insertDocuments (db, doc, callback){
-    //Get the doc collection
+        // A function for adding a document into a database
+        // Possible errors: db not accessible, doc is undefined or wrong type, callback error
+
+        //Get the doc collection
     var collection = db.collection('customers');
     if (typeof doc !== 'Object') {ins = Object(doc);} else {ins = doc};
     //Insert documents
@@ -37,12 +40,14 @@ function insertDocuments (db, doc, callback){
         });
 };
 
-function googleSearchUrl (err, key, callback) {
+function googleSearchUrl (err, key, length, callback) {
+        // A function for passing a query containing 'key' to the google search engine
+        // and returning a result of length 'length' to a 'callback' function
         if (err) throw err;
         var query = 'https://www.google.com.au/search?q=' + key;
         httpRequest(query, function(err, resp, body){
         //if (err) throw err;
-        var searchOut = body && body.slice(2,9);
+        var searchOut = body && body.slice(0,length);
         callback && callback(err, searchOut);
         });
 };
@@ -62,7 +67,7 @@ var server = http.createServer(function (request, response) {
                 if (err) throw (err);
                 var dbRes = String(results[0].name);
                 response.write(dbRes + '\n');
-                googleSearchUrl(err, dbRes, function finishedSearch(err, searchOut) {
+                googleSearchUrl(err, dbRes, 9, function finishedSearch(err, searchOut) {
                         if (err) throw (err);
                         response.write('test \n' + String(searchOut));
                         insertDocuments(db, searchOut, function() {
