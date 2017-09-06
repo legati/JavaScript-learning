@@ -34,7 +34,10 @@ function insertDocuments (db, doc, callback){
     if (typeof doc !== 'Object') {ins = Object(doc);} else {ins = doc};
     //Insert documents
     collection.insert(ins, function(err, result) {
-        if (err) throw err;        
+        if (err) {
+                console.error("Something wrong with insertion, ", err);
+                return;
+        };        
         console.log("Inserted a doc");
         callback && callback(result);
         });
@@ -43,10 +46,13 @@ function insertDocuments (db, doc, callback){
 function googleSearchUrl (err, key, length, callback) {
         // A function for passing a query containing 'key' to the google search engine
         // and returning a result of length 'length' to a 'callback' function
-        if (err) throw err;
+        // Possible errors: length is not a valid number, no http connection
         var query = 'https://www.google.com.au/search?q=' + key;
         httpRequest(query, function(err, resp, body){
-        //if (err) throw err;
+        if (err) {
+                console.error("Experienced an error with the request, ", err);
+                return;
+        };
         var searchOut = body && body.slice(0,length);
         callback && callback(err, searchOut);
         });
@@ -64,11 +70,17 @@ var server = http.createServer(function (request, response) {
         if (err) throw err;
         var myQuery = {_id: 154};
         db.collection('customers').find(myQuery).toArray(function(err, results) {
-                if (err) throw (err);
+                if (err) {
+                        console.error ('Sorry, could not reach the database', err);
+                        return;
+                };
                 var dbRes = String(results[0].name);
                 response.write(dbRes + '\n');
                 googleSearchUrl(err, dbRes, 9, function finishedSearch(err, searchOut) {
-                        if (err) throw (err);
+                        if (err) {
+                                console.error('Bad search, sorry ', err);
+                                return;
+                        };
                         response.write('test \n' + String(searchOut));
                         insertDocuments(db, searchOut, function() {
                                 db.close();
