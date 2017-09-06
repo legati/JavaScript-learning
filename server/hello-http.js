@@ -2,25 +2,6 @@ var http = require('http');
 var httpRequest = require('request');
 //var xml = require("w3c-xmlhttprequest");
 
-//formatting time&date output 
-var hours = function(date) {
-        var h = date.getHours();
-        if (h < 10){h = '0' + h};
-        return(h)
-    };
-
-var minutes = function(date) {
-        var m = date.getMinutes();
-        if (m < 10){m = '0' + m};
-        return(m)
-};
-
-var seconds = function(date) {
-        var s = date.getSeconds();
-        if (s < 10){s = '0' + s}; 
-        return(s)
-};
-
 var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
 var url = 'mongodb://localhost:27017/test2';
