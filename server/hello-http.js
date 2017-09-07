@@ -2,25 +2,6 @@ var http = require('http');
 var httpRequest = require('request');
 //var xml = require("w3c-xmlhttprequest");
 
-//formatting time&date output 
-var hours = function(date) {
-        var h = date.getHours();
-        if (h < 10){h = '0' + h};
-        return(h)
-    };
-
-var minutes = function(date) {
-        var m = date.getMinutes();
-        if (m < 10){m = '0' + m};
-        return(m)
-};
-
-var seconds = function(date) {
-        var s = date.getSeconds();
-        if (s < 10){s = '0' + s}; 
-        return(s)
-};
-
 var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
 var url = 'mongodb://localhost:27017/test2';
@@ -67,11 +48,16 @@ var server = http.createServer(function (request, response) {
     response.write('Hello, world' + '\n' + currentdate + '\n' + Math.random() + '\n');
 
     MongoClient.connect(url, function(err, db){
-        if (err) throw err;
+        if (err) {
+                console.error('Database error: ', err);
+                response.end('No database');
+                return;
+        };
         var myQuery = {_id: 154};
         db.collection('customers').find(myQuery).toArray(function(err, results) {
                 if (err) {
                         console.error ('Sorry, could not reach the database', err);
+                        response.end('Database failed, sorry');
                         return;
                 };
                 var dbRes = String(results[0].name);
@@ -79,12 +65,18 @@ var server = http.createServer(function (request, response) {
                 googleSearchUrl(err, dbRes, 9, function finishedSearch(err, searchOut) {
                         if (err) {
                                 console.error('Bad search, sorry ', err);
+                                response.end('No result');
                                 return;
                         };
                         response.write('test \n' + String(searchOut));
                         insertDocuments(db, searchOut, function() {
+                                if (err) {
+                                        console.error('Insertion error: ', err);
+                                        db.close();
+                                        response.end('Bad insertion');
+                                };
                                 db.close();
-                                response.end();
+                                response.end('Success!');
                         });
                 });
         });
