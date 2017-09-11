@@ -1,6 +1,5 @@
 var http = require('http');
 var httpRequest = require('request');
-//var xml = require("w3c-xmlhttprequest");
 
 var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
