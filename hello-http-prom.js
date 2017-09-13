@@ -3,26 +3,33 @@ var httpRequest = require('request');
 
 var mongo = require('mongodb');
 var MongoClient = mongo.MongoClient;
-var url = 'mongodb://localhost:27017/test2';
+var myUrl = 'mongodb://localhost:27017/test2';
+var query = {_id: 154};
+var length = 15;
 
-var connectToDB = new Promise(function(resolve, reject){
+var connectToDB = function(url) {
+    return new Promise(
+        (resolve, reject) => {
         var db = MongoClient.connect(url);
         if (db) {
             resolve(db);
         }
         else {
-            reject(error);
-        }
-    })
+            reject(error.message);
+            }
+        })
+    }
     
     var findQuery = function(db, query) {
         return new Promise(
             (resolve, reject) => {
-                var dbRes = (db.collection('customers').find(query).toArray)[0].name;
+                //var results = db.collection('customers').find(query).toArray;
+                //var dbRes  = String(results.name);
+                var dbRes = 'AAA'
                 if (dbRes){
                     resolve(dbRes)
                 } else {
-                    reject(error);
+                    reject(error.message);
                 }
             }
         )
@@ -38,7 +45,7 @@ var connectToDB = new Promise(function(resolve, reject){
                             return;
                     };
                     var searchRes = body && body.slice(length);
-                    if (searchRes) resolve(searchRes); else reject(error); 
+                    resolve(searchRes); 
                 })
             }
         )
@@ -49,6 +56,7 @@ var connectToDB = new Promise(function(resolve, reject){
             (resolve, reject) => {
                 try {
                     db.collection('customers').insert(doc);
+                    //console.log(doc);
                     resolve();
                 }
                 catch(error){
@@ -58,30 +66,49 @@ var connectToDB = new Promise(function(resolve, reject){
         )
     }
     
-    var finish = function(db, response) {
+var finish = function(db, response) {
         db.close();
         response.end();
     }
 
-    var makeOurCall = function() {
-        connectToDB.
-        then(findQuery)
-        .then(googleQuery)
-        .then(insertQuery)
-        .then(finish)
-        .catch(error => console.log(error.message));    
+var makeOurCall = function(response, url) {
+        connectToDB(url)
+//        .then((db,query) => findQuery(db,query))
+//        .then((key, length) => googleQuery(key, length))
+//        .then((db,doc) => insertQuery(db, doc))
+        .then((db,response) => finish(db,response))
+        .catch(error => failureCallback(error));    
     }
+
+var failureCallback = function(error, response) {
+    console.log(error.message); 
+    response.end(error.message)
+}
+
+var myHeader = function(response) {
+    return new Promise(
+        (resolve, reject) => {
+            try {
+            var currentdate = new Date();
+            response.writeHead(200, {'Content-Type':'text/plain'});
+            response.write('Hello, world' + '\n' + currentdate + '\n' + Math.random() + '\n');
+            resolve();
+            }
+            catch(error) {
+                console.log(error.message);
+                response.end();
+            }
+        })
+}
 
 
 //creating server
 var server = http.createServer(function (request, response) {
-    var currentdate = new Date();
-
-    response.writeHead(200, {'Content-Type':'text/plain'});
-    response.write('Hello, world' + '\n' + currentdate + '\n' + Math.random() + '\n');
-
-    makeOurCall()
+    myHeader(response)
+    //.then(makeOurCall(response, myUrl));
+    .then((response) => {response.end()})
 });
+
 
 //Listen to port localhost:8000
 server.listen(8000);
