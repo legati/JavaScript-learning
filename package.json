@@ -4,7 +4,8 @@
   "description": "test server for nodejs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node scripts/hello-http.js"
   },
   "repository": {
     "type": "git",
